@@ -6,7 +6,7 @@ SELECT user_id,
     FROM page_visits
     GROUP BY user_id;
 
--- Let's use the previuos quesry as a common experisson and join it with main table
+-- Let's use the previous query as a common experisson and join it with main table
 WITH first_touch AS (
     SELECT user_id,
         MIN(timestamp) as first_touch_at
