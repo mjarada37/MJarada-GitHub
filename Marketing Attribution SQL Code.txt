@@ -1,0 +1,114 @@
+
+-- Let's use the MIN function to identify the first touch for each user
+
+SELECT user_id,
+	MIN(timestamp) as first_touch_at
+    FROM page_visits
+    GROUP BY user_id;
+
+-- Let's use the previuos quesry as a common experisson and join it with main table
+WITH first_touch AS (
+    SELECT user_id,
+        MIN(timestamp) as first_touch_at
+    FROM page_visits
+    GROUP BY user_id)
+SELECT ft.user_id,
+    ft.first_touch_at,
+    pv.utm_source,
+		pv.utm_campaign
+FROM first_touch ft
+JOIN page_visits pv
+    ON ft.user_id = pv.user_id
+    AND ft.first_touch_at = pv.timestamp;
+	
+--
+WITH first_touch AS (
+    SELECT user_id,
+        MIN(timestamp) as first_touch_at
+    FROM page_visits
+    GROUP BY user_id)
+SELECT count(DISTINCT pv.utm_source)
+FROM first_touch ft
+JOIN page_visits pv
+    ON ft.user_id = pv.user_id
+    AND ft.first_touch_at = pv.timestamp;
+
+--
+WITH first_touch AS (
+    SELECT user_id,
+        MIN(timestamp) as first_touch_at
+    FROM page_visits
+    GROUP BY user_id)
+SELECT count (DISTINCT pv.utm_campaign)
+FROM first_touch ft
+JOIN page_visits pv
+    ON ft.user_id = pv.user_id
+    AND ft.first_touch_at = pv.timestamp;
+	
+--
+WITH first_touch AS (
+    SELECT user_id,
+        MIN(timestamp) as first_touch_at
+    FROM page_visits
+    GROUP BY user_id)
+SELECT distinct  pv.utm_source, utm_campaign
+FROM first_touch ft
+JOIN page_visits pv
+    ON ft.user_id = pv.user_id
+    AND ft.first_touch_at = pv.timestamp;
+
+
+-- First we will use a common expression to identify the first touches using the MIN function
+WITH first_touch AS (
+    SELECT user_id,
+           MIN(timestamp) AS first_touch_at
+    FROM page_visits
+    GROUP BY user_id)
+SELECT pv.utm_campaign,
+       pv.utm_source,
+       COUNT(ft.first_touch_at) AS 'First Touch'
+FROM first_touch ft
+-- Then we do an inner join to eliminate any non matching timestamps
+JOIN page_visits pv
+    ON ft.user_id = pv.user_id
+    AND ft.first_touch_at = pv.timestamp
+GROUP BY 1
+ORDER BY 3 DESC;
+
+
+--
+WITH last_touch AS (
+    SELECT user_id,
+        MAX(timestamp) as last_touch_at
+    FROM page_visits
+    GROUP BY user_id)
+SELECT pv.utm_campaign, COUNT(lt.last_touch_at)
+FROM last_touch lt
+JOIN page_visits pv
+    ON lt.user_id = pv.user_id
+    AND lt.last_touch_at = pv.timestamp
+GROUP BY 1
+ORDER BY 2 DESC;
+
+--
+SELECT count(DISTINCT user_id)
+FROM page_visits
+WHERE page_name = '4 - purchase';
+--
+WITH last_touch AS (
+    SELECT user_id,
+        MAX(timestamp) as last_touch_at
+    FROM page_visits
+    GROUP BY user_id)
+SELECT pv.utm_campaign,
+       pv.utm_source,
+       COUNT(lt.last_touch_at)
+FROM last_touch lt
+JOIN page_visits pv
+    ON lt.user_id = pv.user_id
+    AND lt.last_touch_at = pv.timestamp
+-- We add the following WHERE clause to filter only last touches on the purchase page.
+WHERE pv.page_name = '4 - purchase'
+GROUP BY 1
+ORDER BY 3 DESC;
+
